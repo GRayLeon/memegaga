@@ -1,0 +1,18 @@
+{
+  "dependencies": {
+    "express": "^4.21.1",
+    "mongoose": "^8.8.3",
+    "nodemon": "^3.1.7"
+  },
+  "name": "memegaga",
+  "version": "1.0.0",
+  "description": "memegaga's backend",
+  "main": "app.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "server": "nodemon app.js"
+  },
+  "author": "G Ray Leon",
+  "license": "ISC"
+}
