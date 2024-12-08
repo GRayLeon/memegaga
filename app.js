@@ -4,9 +4,11 @@ const mongoose =  require('mongoose')
 const app = express()
 const port = 3000
 
-mongoose.connect("mongodb+srv://maxgray1986:M8q6Xp5epiC6bz5@cluster0.jyh9t.mongodb.net/")
-const db = mongoose.connection
 
+const uri = "mongodb+srv://maxgray1986:M8q6Xp5epiC6bz5@cluster0.jyh9t.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+mongoose.connect(uri)
+
+const db = mongoose.connection
 db.on('err', err => console.log(err))
 db.once('open', () => console.log('Connected to database.'))
 
