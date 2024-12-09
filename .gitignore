@@ -1,1 +1,4 @@
 /node_modules
+.ssh/*
+github_rsa
+github_rsa.pub
