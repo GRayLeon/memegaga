@@ -1,5 +1,6 @@
 const express =  require('express')
 const mongoose =  require('mongoose')
+const cors = require("cors")
 
 const app = express()
 const port = 3000
@@ -11,9 +12,12 @@ db.on('err', err => console.log(err))
 db.once('open', () => console.log('Connected to database.'))
 
 app.use(express.json())
+app.use(cors())
 
-const userRouter = require('./routes/user')
-app.use("/user", userRouter)
+const productRouter = require('./routes/product')
+const authRouter = require('./routes/auth')
+app.use("/product", productRouter)
+app.use("/auth", authRouter)
 
 app.get("/", (req, res) => {
     res.send("Server's running.")

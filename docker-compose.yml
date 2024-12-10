@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  app: 
+    build:
+      context: .
+    container_name: express-app
+    ports:
+      - "3000:3000"
+    environment:
+      - MONGO_URI=mongodb+srv://maxgray1986:M8q6Xp5epiC6bz5@cluster0.jyh9t.mongodb.net/
+    depends_on:
+      - db
+    networks:
+      - app-network
