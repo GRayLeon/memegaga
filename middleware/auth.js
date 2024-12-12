@@ -6,14 +6,20 @@ const authenticateToken = (req, res, next) => {
   if (!token) {
     return res
             .status(401)
-            .json({ error: 'No token provided.' })
+            .json({ 
+              code: 1101,
+              error: 'No token provided.'
+            })
   }
 
   jwt.verify(token, JWT_SECRET, (err, decoded) => {
     if (err) {
       return res
               .status(403)
-              .json({ error: 'Invalid token' })
+              .json({ 
+                code: 1103,
+                error: 'Invalid token'
+              })
     }
     req.account = decoded
     next()
