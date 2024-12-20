@@ -9,6 +9,7 @@ const cloudinary = require('cloudinary').v2
 
 require('dotenv').config()
 
+
 // 圖片上傳相關
 //// 配置 cloudinary
 
@@ -18,6 +19,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 })
 
+
 //// 配置 Multer Storage
 
 const storage = new CloudinaryStorage({
@@ -25,45 +27,77 @@ const storage = new CloudinaryStorage({
   params: {
     folder: "products",
     format: async (req, file) => "jpg",
-    public_id: (req, file) => Date.now()
+    public_id: (req, file) => Date.now(),
+    transformation: [
+      {
+        width: 1024,
+        height: 1024,
+        crop: "limit",
+        quality: "auto",
+        fetch_format: "auto"
+      }
+    ]
   }
 })
 
-const upload = multer({ storage })
+const upload = multer({ 
+  storage,
+  limits: {
+    fileSize: 1 * 1024 * 1024
+  },
+  fileFilter: (req, file, callback) => {
+    const allowedMimeTypes = ["image/jpeg", "image/png"]
+    if (allowedMimeTypes.includes(file.mimetype)) {
+      callback(null, true)
+    } else {
+      callback(new Error("僅接受 JPG 或 PNG 格式的圖片"))
+    }
+  }
+})
+
 
 // api
 //// 取得產品列表
 
-router.get("/", async (req, res) => {
-  try {
-    const product = await Product.find()
-    res.json(product)
-  } catch (err) {
-    res
-      .status(500)
-      .json({ message: err.message })
-  }
+router.get("/", getProducts, (req, res) => {
+  res.json(res.products)
 })
 
 
 //// 依 ID 取得產品
 
-router.get("/:id", getProduct, (req, res) => {
-  res.json(res.product)
+router.get("/:id", async(req, res) => {
+  try {
+    const product = await Product.findById(req.params.id)
+    if (product) {
+      res.json(res.product)
+      
+    } else {
+      return res
+              .status(404)
+              .json({
+                message: "Can't find product."
+              })
+    }
+  } catch (err) {
+    res
+      .status(400)
+      .json({ message: err.message })
+  }
 })
 
 
 //// 依 ID 刪除產品
 
-router.delete("/:id", authenticateToken, getProduct, async (req, res) => {
+router.delete("/:id", authenticateToken, async (req, res) => {
   try {
-    // 若商品已有 imagePublicId 則透過 cloudinary 刪除圖片
-    if (res.product.imagePublicId) {
-      await cloudinary.uploader.destroy(res.product.imagePublicId)
+    const product = await Product.findById(req.params.id)
+    if (product.imagePublicId) {
+      await cloudinary.uploader.destroy(product.imagePublicId)
     }
     
-    await res.product.deleteOne()
-    res.json(`已成功刪除產品： ${res.product.name}`)
+    await product.deleteOne()
+    res.json(`已成功刪除產品： ${product.name}`)
   } catch (err) {
     res
       .status(500)
@@ -82,16 +116,21 @@ router.post("/:type", authenticateToken, upload.single("image"), async (req, res
   // 判斷 type 再生成 product
   let product = null
   let status = null
-  let wording = null
+
+  req.body.name = JSON.parse(req.body.name)
+  req.body.description = JSON.parse(req.body.description)
+  req.body.sizes = JSON.parse(req.body.sizes)
 
   const type = req.params.type
   if (type == 'edit') {
     try {
-      product = await Product.findById(req.body.id)
+      product = await Product.findById(req.body._id)
       Object.assign(product, req.body)
       // 若有新的 imagePublicId 則刪除舊的
-      if (imagePublicId) { 
-        await cloudinary.uploader.destroy(req.body.imagePublicId)
+      if (imagePublicId) {
+        if (req.body.imagePublicId) {
+          await cloudinary.uploader.destroy(req.body.imagePublicId)
+        }
         product.imagePublicId = imagePublicId
         product.imageURL = imageURL
       }
@@ -109,10 +148,8 @@ router.post("/:type", authenticateToken, upload.single("image"), async (req, res
   }
 
   try {
-    const newProduct = await product.save()
-    res
-      .status(status)
-      .json(`已成功${wording}產品： ${newProduct.name} - ${newProduct.imageURL}`)
+    await product.save()
+    res.status(status).send()
   } catch (err) {
     res
       .status(400)
@@ -121,26 +158,58 @@ router.post("/:type", authenticateToken, upload.single("image"), async (req, res
 })
 
 
-//// 依 ID 查詢資料庫
+//// 依條件查詢資料庫
 
-async function getProduct(req, res, next) {
-  let product
+async function getProducts(req, res, next) {
+  const { 
+    page = 1,
+    size = 10,
+    status,
+    category,
+    sortBy = "_id",
+    sortOrder = "asc"
+  } = req.query
+
+  const pageNumber = parseInt(page, 10)
+  const pageSize = parseInt(size, 10)
+
+  const filter = {}
+  if (category) { filter.parentCategory = category }
+  if (status) { filter.status = status }
+
+  const sortDirection = sortOrder === "desc" ? -1 : 1
+  const sort = { [sortBy]: sortDirection }
+
   try {
-    product = await Product.findById(req.params.id)
-    if (product == undefined) {
+    const total = await Product.countDocuments(filter);
+    const products = await Product
+                            .find(filter)
+                            .sort(sort)
+                            .skip((pageNumber - 1) * pageSize)
+                            .limit(pageSize)
+    if (products == undefined) {
         return res
                 .status(404)
                 .json({
                   message: "Can't find product."
                 })
+    } else {
+      res.products = {
+        data: products,
+        pagination: {
+          total,
+          currentPage: pageNumber,
+          pageSize,
+          totalPages: Math.ceil(total / pageSize),
+        }
+      }
+      next()
     }
   } catch (err) {
       res
         .status(500)
         .json({ message: err.message })
   }
-  res.product = product
-  next()
 }
 
 module.exports = router

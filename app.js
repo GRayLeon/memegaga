@@ -5,7 +5,9 @@ const cors = require("cors")
 const app = express()
 const port = 3000
 
-mongoose.connect("mongodb+srv://maxgray1986:M8q6Xp5epiC6bz5@cluster0.jyh9t.mongodb.net/")
+require('dotenv').config()
+
+mongoose.connect(process.env.MONGO_URI)
 const db = mongoose.connection
 
 db.on('err', err => console.log(err))
@@ -16,8 +18,13 @@ app.use(cors())
 
 const productRouter = require('./routes/product')
 const authRouter = require('./routes/auth')
+const categoryRouter = require('./routes/category')
+const sizeRouter = require('./routes/size')
+
 app.use("/product", productRouter)
 app.use("/auth", authRouter)
+app.use("/category", categoryRouter)
+app.use("/size", sizeRouter)
 
 app.get("/", (req, res) => {
     res.send("Server's running.")

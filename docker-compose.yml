@@ -3,11 +3,14 @@ services:
   app: 
     build:
       context: .
-    container_name: express-app
+    container_name: memegaga's backend
     ports:
       - "3000:3000"
     environment:
       - MONGO_URI=mongodb+srv://maxgray1986:M8q6Xp5epiC6bz5@cluster0.jyh9t.mongodb.net/
+      - CLOUDINARY_CLOUD_NAME=dd9urowc5
+      - CLOUDINARY_API_KEY=475235228614356
+      - CLOUDINARY_API_SECRET=1v-j3VObLY9_dAV4zPzETpZOP3U
     depends_on:
       - db
     networks:
