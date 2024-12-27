@@ -1,9 +1,22 @@
 const express =  require('express')
+
+const rfs = require('rotating-file-stream')
+const path = require('path')
+const morgan = require('morgan')
+
 const mongoose =  require('mongoose')
 const cors = require("cors")
 
 const app = express()
 const port = 3000
+
+const accessLogStream = rfs.createStream('access.log', {
+  interval: '1d',
+  path: path.join(__dirname, 'logs'),
+  maxFiles: 30
+})
+
+app.use(morgan('common', { stream: accessLogStream }))
 
 require('dotenv').config()
 
@@ -27,7 +40,7 @@ app.use("/category", categoryRouter)
 app.use("/size", sizeRouter)
 
 app.get("/", (req, res) => {
-    res.send("Server's running.")
+  res.send("Server's running.")
 })
 
 app.listen(port, () => console.log(`App is listening on port ${port}.`))
