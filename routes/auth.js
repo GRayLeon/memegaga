@@ -12,7 +12,14 @@ const JWT_SECRET = 'memegaga_jwt_secret'
 router.get("/", authenticateToken, async (req, res) => {
   try {
     const accounts = await Account.find()
-    res.json(accounts)
+    const filtedAccounts = accounts.map(account => ({
+      '_id': account._id,
+      'account': account.account,
+      'status': account.status,
+      'description': account.description,
+      'lastLogin': account.lastLogin
+    }))
+    res.json(filtedAccounts)
   } catch (err) {
     res
       .status(400)
@@ -69,6 +76,29 @@ router.post("/login", async (req, res) => {
     res
       .status(400)
       .json({ error: err.message })
+  }
+})
+
+// 編輯帳號
+
+router.post("/edit", authenticateToken, async (req, res) => {
+  let account = null
+  try {
+    account = await Account.findById(req.body._id)
+    Object.assign(account, req.body)
+  } catch (err) {
+    res
+      .status(400)
+      .json({ message: err.message })
+  }
+
+  try {
+    await account.save()
+    res.status(200).send()
+  } catch (err) {
+    res
+      .status(400)
+      .json({ message: err.message })
   }
 })
 

@@ -11,6 +11,14 @@ const accountScheme = new mongoose.Schema({
         type: String,
         required: true
     },
+    status: {
+        type: Number,
+        default: 1,
+        required: false
+    },
+    description: {
+        type: String
+    },
     password: {
         type: String,
         required: true
