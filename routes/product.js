@@ -19,41 +19,70 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 })
 
-
-//// 配置 Multer Storage
-
+// 多張圖片依規格上傳
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: {
-    folder: "products",
-    format: async (req, file) => "jpg",
-    public_id: (req, file) => Date.now(),
-    transformation: [
-      {
+  params: async (req, file) => {
+    let transformation
+
+    if (file.fieldname === "mainImage") {
+      transformation = [{ 
         width: 1024,
         height: 1024,
         crop: "limit",
         quality: "auto",
         fetch_format: "auto"
-      }
-    ]
-  }
-})
+      }]
+    } else if (file.fieldname === "shapeImages") {
+      transformation = [{
+        width: 100,
+        height: 100,
+        crop: "limit",
+        quality: "auto",
+        fetch_format: "auto"
+      }]
+    }
 
-const upload = multer({ 
-  storage,
-  limits: {
-    fileSize: 1 * 1024 * 1024
-  },
-  fileFilter: (req, file, callback) => {
-    const allowedMimeTypes = ["image/jpeg", "image/png"]
-    if (allowedMimeTypes.includes(file.mimetype)) {
-      callback(null, true)
-    } else {
-      callback(new Error("僅接受 JPG 或 PNG 格式的圖片"))
+    return {
+      folder: "products",
+      format: "jpg",
+      public_id: Date.now() + "-" + file.originalname.split(".")[0],
+      transformation
     }
   }
 })
+
+
+// 限制檔案類型以及大小
+const upload = multer({ 
+  storage,
+  fileFilter: (req, file, callback) => {
+    const allowedMimeTypes = ["image/jpeg", "image/png"]
+    const maxSizeMainImage = 1 * 1024 * 1024
+    const maxSizeShapeImage = 500 * 1024
+    
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      callback(new Error("僅接受 JPG 或 PNG 格式的圖片"))
+    }
+
+    if (file.fieldname === "mainImage" && file.size > maxSizeMainImage) {
+      callback(new Error("商品圖片大小不得超過 1MB"))
+    }
+
+    if (file.fieldname === "shapeImages" && file.size > maxSizeShapeImage) {
+      callback(new Error("面狀圖片大小不得超過 500KB"))
+    }
+
+    callback(null, true)
+  }
+})
+
+
+// 限制上傳的圖片數量
+const uploadFields = upload.fields([
+  { name: "mainImage", maxCount: 1 },
+  { name: "shapeImages", maxCount: 10 }
+])
 
 
 // api
@@ -108,14 +137,22 @@ router.delete("/:id", authenticateToken, async (req, res) => {
 
 // 新增/編輯商品資訊
 
-router.post("/:type", authenticateToken, upload.single("image"), async (req, res) => {
+router.post("/:type", authenticateToken, uploadFields, async (req, res) => {
   // 透過 upload 上傳圖片至 cloudinary 並取得相關資訊
-  const imageURL = req.file?.path
-  const imagePublicId = req.file?.filename
+  const mainImage = req.files["mainImage"] ? req.files["mainImage"] : null
+  const imageURL = mainImage?.path || null
+  const imagePublicId = mainImage?.filename || null
+
+  const shapeImages = req.files["shapeImages"] || []
+  const shapeImagesData = shapeImages.map( file => ({
+    'imageURL': file.path,
+    'imagePublicId': file.filename
+  }))
 
   // 判斷 type 再生成 product
-  let product = null
-  let status = null
+  let product
+  let status
+  let wording
 
   req.body.name = JSON.parse(req.body.name)
   req.body.description = JSON.parse(req.body.description)
@@ -125,14 +162,62 @@ router.post("/:type", authenticateToken, upload.single("image"), async (req, res
   if (type == 'edit') {
     try {
       product = await Product.findById(req.body._id)
+      req.body.shapes = JSON.parse(req.body.shapes)
+      req.body.tags = JSON.parse(req.body.tags)
       Object.assign(product, req.body)
       // 若有新的 imagePublicId 則刪除舊的
       if (imagePublicId) {
-        if (req.body.imagePublicId) {
-          await cloudinary.uploader.destroy(req.body.imagePublicId)
+        if (product.imagePublicId) {
+          await cloudinary.uploader.destroy(product.imagePublicId)
         }
         product.imagePublicId = imagePublicId
         product.imageURL = imageURL
+      }
+      
+      // 若有新的 shapes 則刪除舊的
+      const deleteShapes = []
+      if (shapeImagesData.length > 0) {
+        const newShapes = req.body.shapes
+        const updatedShapes = newShapes.map( (newShape, idx) => {
+          let image
+          for (const update of req.body.updateShapes) {
+            if (update.idx == idx) {
+              shapeImagesData.forEach( data => {
+                let checkName = data.imagePublicId.split("-")[1]
+                if (update.name == checkName) {
+                  image = data
+                }
+              })
+              deleteShapes.push(product.shapes[idx].imagePublicId)
+            }
+          }
+          if (!image) {
+            return {
+              'title': newShape.title,
+              'scale': newShape.scale,
+              'imageURL': newShape.imageURL,
+              'imagePublicId': newShape.imagePublicId
+            }
+          } else {
+            return {
+              'title': newShape.title,
+              'scale': newShape.scale,
+              'imageURL': image.imageURL,
+              'imagePublicId': image.imagePublicId
+            }
+          }
+          
+        })
+        for (const shape of deleteShapes) {
+          try {
+            await cloudinary.uploader.destroy(shape)
+          } catch (err) {
+            return res
+                    .status(400)
+                    .json({ message: err.message })
+          }
+        }
+        product.shapes = updatedShapes
       }
       status = 200
       wording = '修改'

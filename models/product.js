@@ -17,6 +17,24 @@ const productScheme = new mongoose.Schema({
   imagePublicId: {
     type: String
   },
+  shapes: [
+    {
+      title: {
+        type: String,
+        required: true
+      },
+      scale: {
+        type: Number,
+        required: true
+      },
+      imageURL: {
+        type: String
+      },
+      imagePublicId: {
+        type: String
+      },
+    }
+  ],
   parentCategory: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Category',
@@ -36,6 +54,10 @@ const productScheme = new mongoose.Schema({
     }
   ],
   colors: {
+    type: Array,
+    of: String
+  },
+  tags: {
     type: Array,
     of: String
   },
