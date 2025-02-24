@@ -33,11 +33,13 @@ const productRouter = require('./routes/product')
 const authRouter = require('./routes/auth')
 const categoryRouter = require('./routes/category')
 const sizeRouter = require('./routes/size')
+const regionRouter = require('./routes/region')
 
 app.use("/product", productRouter)
 app.use("/auth", authRouter)
 app.use("/category", categoryRouter)
 app.use("/size", sizeRouter)
+app.use("/region", regionRouter)
 
 app.get("/", (req, res) => {
   res.send("Server's running.")
