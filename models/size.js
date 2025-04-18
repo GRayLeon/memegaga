@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
-const sizeScheme = new mongoose.Schema({
+const sizeSchema = new mongoose.Schema({
   size: {
     type: String,
     required: true
@@ -16,4 +16,4 @@ const sizeScheme = new mongoose.Schema({
   }
 })
 
-module.exports = mongoose.model('size', sizeScheme)
+module.exports = mongoose.model('size', sizeSchema)

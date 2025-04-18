@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
 
-const accountScheme = new mongoose.Schema({
+const accountSchema = new mongoose.Schema({
     account: {
         type: String,
         required: true,
@@ -29,7 +29,7 @@ const accountScheme = new mongoose.Schema({
     }
 })
 
-accountScheme.pre('save', async function(next) {
+accountSchema.pre('save', async function(next) {
     if (!this.isModified('password')) {
         return next()
     }
@@ -38,8 +38,8 @@ accountScheme.pre('save', async function(next) {
     next()
 })
 
-accountScheme.methods.comparePassword = async function(candidatePassword) {
+accountSchema.methods.comparePassword = async function(candidatePassword) {
     return await bcrypt.compare(candidatePassword, this.password)
 }
 
-module.exports = mongoose.model('Account', accountScheme)
+module.exports = mongoose.model('Account', accountSchema)

@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
-const regionScheme = new mongoose.Schema({
+const regionSchema = new mongoose.Schema({
   name: {
     type: Map,
     of: String,
@@ -18,4 +18,4 @@ const regionScheme = new mongoose.Schema({
   }
 })
 
-module.exports = mongoose.model('region', regionScheme)
+module.exports = mongoose.model('region', regionSchema)

@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
-const categoryScheme = new mongoose.Schema({
+const categorySchema = new mongoose.Schema({
   name: {
     type: Map,
     of: String,
@@ -18,4 +18,4 @@ const categoryScheme = new mongoose.Schema({
   }
 })
 
-module.exports = mongoose.model('category', categoryScheme)
+module.exports = mongoose.model('category', categorySchema)

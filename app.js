@@ -30,16 +30,20 @@ app.use(express.json())
 app.use(cors())
 
 const productRouter = require('./routes/product')
+const projectRouter = require('./routes/project')
 const authRouter = require('./routes/auth')
 const categoryRouter = require('./routes/category')
 const sizeRouter = require('./routes/size')
 const regionRouter = require('./routes/region')
+const specRouter = require('./routes/spec')
 
 app.use("/product", productRouter)
+app.use("/project", projectRouter)
 app.use("/auth", authRouter)
 app.use("/category", categoryRouter)
 app.use("/size", sizeRouter)
 app.use("/region", regionRouter)
+app.use("/spec", specRouter)
 
 app.get("/", (req, res) => {
   res.send("Server's running.")

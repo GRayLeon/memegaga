@@ -1,9 +1,49 @@
 const mongoose = require('mongoose')
 
-const productScheme = new mongoose.Schema({
+const productSchema = new mongoose.Schema({
   name: {
     type: Map,
     of: String,
+    required: true
+  },
+  origin: {
+    type: Map,
+    of: String,
+    required: true
+  },
+  appearance: {
+    type: Map,
+    of: String,
+    required: true
+  },
+  functionality: {
+    type: Map,
+    of: String,
+    required: true
+  },
+  support: {
+    type: Map,
+    of: String,
+    required: true
+  },
+  brand: {
+    type: String,
+    required: true
+  },
+  model: {
+    type: String,
+    required: true
+  },
+  dimension: {
+    type: String,
+    required: true
+  },
+  slipResistance: {
+    type: Number,
+    required: true
+  },
+  application: {
+    type: String,
     required: true
   },
   description: {
@@ -17,24 +57,42 @@ const productScheme = new mongoose.Schema({
   imagePublicId: {
     type: String
   },
-  shapes: [
-    {
-      title: {
-        type: String,
-        required: true
-      },
-      scale: {
-        type: Number,
-        required: true
-      },
-      imageURL: {
-        type: String
-      },
-      imagePublicId: {
-        type: String
-      },
-    }
-  ],
+  subImages: [{
+    imageURL: {
+      type: String
+    },
+    imagePublicId: {
+      type: String
+    },
+  }],
+  shapes: [{
+    title: {
+      type: String,
+      required: true
+    },
+    scale: {
+      type: Number,
+      required: true
+    },
+    imageURL: {
+      type: String
+    },
+    imagePublicId: {
+      type: String
+    },
+  }],
+  colors: [{
+    title: {
+      type: String,
+      required: true
+    },
+    imageURL: {
+      type: String
+    },
+    imagePublicId: {
+      type: String
+    },
+  }],
   parentCategory: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Category',
@@ -53,10 +111,6 @@ const productScheme = new mongoose.Schema({
       }
     }
   ],
-  colors: {
-    type: Array,
-    of: String
-  },
   tags: {
     type: Array,
     of: String
@@ -73,4 +127,4 @@ const productScheme = new mongoose.Schema({
   }
 })
 
-module.exports = mongoose.model('product', productScheme)
+module.exports = mongoose.model('product', productSchema)
