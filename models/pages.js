@@ -1,37 +1,31 @@
 const mongoose = require('mongoose')
 
-const pageSchema = new mongoose.Schema({
-  about: {
-    vision: {
-      description: {
-        type: Map,
-        of: String,
-        required: true
-      },
-      imageURL: {
-        type: String
-      },
-      imagePublicId: {
-        type: String
-      }
+const pagesSchema = new mongoose.Schema({
+  vision: {
+    description: {
+      type: Map,
+      of: String,
+      required: true
     },
-    partner: [{
-      name: {
-        type: String,
-        required: true
-      },
-      description: {
-        type: String,
-        required: true
-      },
-      imageURL: {
-        type: String
-      },
-      imagePublicId: {
-        type: String
-      }
-    }]
-  }
+    imageURL: {
+      type: String
+    },
+    imagePublicId: {
+      type: String
+    }
+  },
+  partners: [{
+    name: {
+      type: String,
+      required: true
+    },
+    imageURL: {
+      type: String
+    },
+    imagePublicId: {
+      type: String
+    }
+  }]
 })
 
-module.exports = mongoose.model('page', pageSchema)
+module.exports = mongoose.model('pages', pagesSchema)
