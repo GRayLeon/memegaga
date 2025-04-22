@@ -2,36 +2,59 @@ const mongoose = require('mongoose')
 
 const newsSchema = new mongoose.Schema({
   topic: {
-    type: String,
+    type: Map,
+    of: String,
     required: true
   },
   source: {
     type: String,
     required: true
   },
-  mainImage: {
-    imageURL: {
-      type: String
-    },
-    imagePublicId: {
-      type: String
-    }
+  imageURL: {
+    type: String
+  },
+  imagePublicId: {
+    type: String
+  },
+  description: {
+    type: Map,
+    of: String,
+    required: true
+  },
+  detail: {
+    type: Map,
+    of: String,
+    required: true
   },
   content: [{
     layout: {
-      type: String,
-      required: true,
-      enum: [
-        'image-left',
-        'image-right',
-        'image-top',
-        'image-bottom'
-      ],
-      default: 'image-top'
+      direction: {
+        type: String,
+        required: true,
+        enum: [
+          'single-vertical',
+          'double-vertical',
+          'single-horizon',
+          'double-borizon'
+        ],
+        default: 'single-vertical'
+      },
+      position: {
+        type: String,
+        required: true,
+        enum: [
+          'image-left',
+          'image-right',
+          'image-top',
+          'image-bottom'
+        ],
+        default: 'image-top'
+      }
     },
     article: [{
       text: {
-        type: String,
+        type: Map,
+        of: String,
         required: function() { return !this.image }
       },
       imageURL: {
@@ -46,6 +69,12 @@ const newsSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
+  status: {
+    type: String,
+    enum: ['draft', 'active', 'inactive', 'archived'],
+    default: 'draft',
+    required: true
+  }
 
 })
 

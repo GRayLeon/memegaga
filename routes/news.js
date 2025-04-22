@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const Project = require('../models/project')
+const News = require('../models/news')
 const authenticateToken = require('../middleware/auth')
 
 const multer = require('multer')
@@ -33,7 +33,7 @@ const storage = new CloudinaryStorage({
     }]
     
     return {
-      folder: "projects",
+      folder: "news",
       format: "jpg",
       public_id: Date.now() + "-" + file.originalname.split(".")[0],
       transformation
@@ -64,15 +64,16 @@ const upload = multer({
 
 // 限制上傳的圖片數量
 const uploadFields = upload.fields([
-  { name: "projectImages", maxCount: 10 }
+  { name: "mainImage", maxCount: 1 },
+  { name: "newsImages", maxCount: 10 }
 ])
 
 
 // api
 //// 取得產品列表
 
-router.get("/", getProjects, (req, res) => {
-  res.json(res.projects)
+router.get("/", getNews, (req, res) => {
+  res.json(res.news)
 })
 
 
@@ -80,14 +81,14 @@ router.get("/", getProjects, (req, res) => {
 
 router.get("/:id", async(req, res) => {
   try {
-    const project = await Project.findById(req.params.id)
-    if (project) {
-      res.json(project)
+    const news = await News.findById(req.params.id)
+    if (news) {
+      res.json(news)
     } else {
       return res
               .status(404)
               .json({
-                message: "Can't find project."
+                message: "Can't find news."
               })
     }
   } catch (err) {
@@ -102,17 +103,17 @@ router.get("/:id", async(req, res) => {
 
 router.delete("/:id", authenticateToken, async (req, res) => {
   try {
-    const project = await Project.findById(req.params.id)
-    if (project.imagePublicId) {
-      await cloudinary.uploader.destroy(project.imagePublicId)
+    const news = await News.findById(req.params.id)
+    if (news.imagePublicId) {
+      await cloudinary.uploader.destroy(news.imagePublicId)
     }
     
-    await project.deleteOne()
-    res.json(`已成功刪除產品： ${project.name}`)
+    await news.deleteOne()
+    res.json(`已成功刪除產品： ${news.name}`)
   } catch (err) {
     res
       .status(500)
-      .json({ message: "Remove project faild." })
+      .json({ message: "Remove news faild." })
   }
 })
 
@@ -121,40 +122,51 @@ router.delete("/:id", authenticateToken, async (req, res) => {
 router.post("/:type", authenticateToken, uploadFields, async (req, res) => {
   // 透過 upload 上傳圖片至 cloudinary 並取得相關資訊
 
-  let projectImagesData = null
+  const mainImage = req.files["mainImage"] ? req.files["mainImage"][0] : null
+  const imageURL = mainImage?.path || null
+  const imagePublicId = mainImage?.filename || null
 
-  const projectImages = req.files["projectImages"] || []
-  if (projectImages) {
-    projectImagesData = projectImages.map( file => ({
+  let newsImagesData = null
+
+  const newsImages = req.files["newsImages"] || []
+  if (newsImages) {
+    newsImagesData = newsImages.map( file => ({
       'imageURL': file.path,
       'imagePublicId': file.filename
     }))
   }
 
+  req.body.topic = JSON.parse(req.body.topic)
   req.body.description = JSON.parse(req.body.description)
   req.body.detail = JSON.parse(req.body.detail)
-  req.body.tags = JSON.parse(req.body.tags)
-  req.body.imageList = JSON.parse(req.body.imageList)
+  req.body.content = JSON.parse(req.body.content)
 
-  req.body.updateProjectImages = JSON.parse(req.body.updateProjectImages)
-
-  let project
+  let news
   let status
   let wording
 
   const type = req.params.type
   if (type == 'edit') {
     try {
-      project = await Project.findById(req.body._id)
-      Object.assign(project, req.body)
+      news = await News.findById(req.body._id)
+      Object.assign(news, req.body)
 
+      // 若有新的 imagePublicId 則刪除舊的
+      if (imagePublicId) {
+        if (news.imagePublicId) {
+          await cloudinary.uploader.destroy(news.imagePublicId)
+        }
+        news.imagePublicId = imagePublicId
+        news.imageURL = imageURL
+      }
 
       // 若有新的 subImages 則刪除舊的
-      const deleteProjectImages = []
-      if (projectImagesData && projectImagesData.length > 0) {
+      const deleteNewsImages = []
+      if (newsImagesData && newsImagesData.length > 0) {
+        req.body.updateNewsImages = JSON.parse(req.body.updateNewsImages)
         const newImages = []
-        req.body.imageList.forEach( (list, listIdx) => {
-          list.images.forEach( (image, idx) => {
+        req.body.content.forEach( (item, listIdx) => {
+          item.article.forEach( (image, idx) => {
             newImages.push({
               listIdx: listIdx,
               idx: idx,
@@ -162,18 +174,18 @@ router.post("/:type", authenticateToken, uploadFields, async (req, res) => {
             })
           })
         })
-        const updateProjectImages = newImages.map( newImage => {
+        const updateNewsImages = newImages.map( newImage => {
           let image
-          for (const update of req.body.updateProjectImages) {
+          for (const update of req.body.updateNewsImages) {
             if (update.index[0] == newImage.listIdx && update.index[1] == newImage.idx) {
-              projectImagesData.forEach( data => {
+              newsImagesData.forEach( data => {
                 let checkName = data.imagePublicId.split("-")[1]
                 if (update.name == checkName) {
                   image = data
                 }
               })
-              if (project.imageList[newImage.listIdx].images[newImage.idx] && project.imageList[newImage.listIdx].images[newImage.idx].imagePublicId) {
-                deleteProjectImages.push(project.imageList[newImage.listIdx].images[newImage.idx].imagePublicId)
+              if (news.content[newImage.listIdx].article[newImage.idx] && news.content[newImage.listIdx].article[newImage.idx].imagePublicId) {
+                deleteNewsImages.push(news.content[newImage.listIdx].article[newImage.idx].imagePublicId)
               }
             }
           }
@@ -193,7 +205,7 @@ router.post("/:type", authenticateToken, uploadFields, async (req, res) => {
             }
           }
         })
-        for (const image of deleteProjectImages) {
+        for (const image of deleteNewsImages) {
           try {
             await cloudinary.uploader.destroy(image)
           } catch (err) {
@@ -202,11 +214,11 @@ router.post("/:type", authenticateToken, uploadFields, async (req, res) => {
                     .json({ message: err.message })
           }
         }
-        updateProjectImages.forEach( update => {
-          project.imageList[update.listIdx].images[update.idx].imageURL = update.imageURL
-          project.imageList[update.listIdx].images[update.idx].imagePublicId = update.imagePublicId
+        updateNewsImages.forEach( update => {
+          news.content[update.listIdx].article[update.idx].imageURL = update.imageURL
+          news.content[update.listIdx].article[update.idx].imagePublicId = update.imagePublicId
         })
-        project.markModified('imageList')
+        news.markModified('content')
       }
 
       status = 200
@@ -217,13 +229,13 @@ router.post("/:type", authenticateToken, uploadFields, async (req, res) => {
         .json({ message: err.message })
     }
   } else if (type == 'add') {
-    project = new Project({ ...req.body })
+    news = new News({ ...req.body })
     status = 201
     wording = '新增'
   }
 
   try {
-    await project.save()
+    await news.save()
     res.status(status).send()
   } catch (err) {
     res
@@ -235,7 +247,7 @@ router.post("/:type", authenticateToken, uploadFields, async (req, res) => {
 
 //// 依條件查詢資料庫
 
-async function getProjects(req, res, next) {
+async function getNews(req, res, next) {
   const { 
     page = 1,
     size = 10,
@@ -256,21 +268,21 @@ async function getProjects(req, res, next) {
   const sort = { [sortBy]: sortDirection }
 
   try {
-    const total = await Project.countDocuments(filter);
-    const projects = await Project
+    const total = await News.countDocuments(filter);
+    const news = await News
                             .find(filter)
                             .sort(sort)
                             .skip((pageNumber - 1) * pageSize)
                             .limit(pageSize)
-    if (projects == undefined) {
+    if (news == undefined) {
         return res
                 .status(404)
                 .json({
-                  message: "Can't find project."
+                  message: "Can't find news."
                 })
     } else {
-      res.projects = {
-        data: projects,
+      res.news = {
+        data: news,
         pagination: {
           total,
           currentPage: pageNumber,
