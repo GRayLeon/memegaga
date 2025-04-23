@@ -3,6 +3,10 @@ const router = express.Router()
 const Inquiry = require('../models/inquiry')
 const authenticateToken = require('../middleware/auth')
 
+const path = require('path')
+const fs = require('fs')
+const { createReport } = require('docx-templates')
+
 require('dotenv').config()
 
 // api
@@ -13,9 +17,39 @@ router.get("/", getInquirys, (req, res) => {
 })
 
 
+//// 下載表單
+
+router.get("/download/:id", async (req, res) => {
+  try {
+    const templatePath = path.join(__dirname, '..', 'templates', 'report-template.docx')
+    const template = fs.readFileSync(templatePath)
+
+    const docxBuffer = await createReport({
+      template,
+      data: {
+        title: '測試一下',
+        subtitle: '你看到表示你成功了'
+      },
+      cmdDelimiter: ['{{', '}}']
+    })
+
+    fs.writeFileSync('./test.docx', docxBuffer)
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+    res.setHeader('Content-Disposition', 'attachment; filename=report.docx')
+    res.setHeader('Content-Length', docxBuffer.length)
+    res.status(200)
+    res.end(docxBuffer)
+  } catch (err) {
+    console.error('Error generating docx:', err)
+    res.status(500).send('產生 Word 文件失敗')
+  }
+})
+
+
 //// 依 ID 取得詢問表單
 
-router.get("/:id", authenticateToken, async(req, res) => {
+router.get("/:id", async(req, res) => {
   try {
     const inquiry = await Inquiry.findById(req.params.id)
     if (inquiry) {

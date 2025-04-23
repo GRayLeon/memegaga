@@ -39,6 +39,7 @@ const categoryRouter = require('./routes/category')
 const sizeRouter = require('./routes/size')
 const regionRouter = require('./routes/region')
 const specRouter = require('./routes/spec')
+const inquiryRouter = require('./routes/inquiry')
 
 app.use("/product", productRouter)
 app.use("/project", projectRouter)
@@ -50,6 +51,7 @@ app.use("/category", categoryRouter)
 app.use("/size", sizeRouter)
 app.use("/region", regionRouter)
 app.use("/spec", specRouter)
+app.use("/inquiry", inquiryRouter)
 
 app.get("/", (req, res) => {
   res.send("Server's running.")
