@@ -93,24 +93,6 @@ const productSchema = new mongoose.Schema({
       type: String
     },
   }],
-  parentCategory: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Category',
-    default: null
-  },
-  sizes: [
-    {
-      sizeId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Size',
-        required: true
-      },
-      count: {
-        type: Number,
-        required: true
-      }
-    }
-  ],
   tags: {
     type: Array,
     of: String

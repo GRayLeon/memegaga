@@ -21,25 +21,31 @@ router.get("/", getInquirys, (req, res) => {
 
 router.get("/download/:id", async (req, res) => {
   try {
-    const templatePath = path.join(__dirname, '..', 'templates', 'report-template.docx')
-    const template = fs.readFileSync(templatePath)
+    const inquiry = await Inquiry.findById(req.params.id)
+    if (inquiry) {
+      const templatePath = path.join(__dirname, '..', 'templates', 'report-template.docx')
+      const template = fs.readFileSync(templatePath)
 
-    const docxBuffer = await createReport({
-      template,
-      data: {
-        title: '測試一下',
-        subtitle: '你看到表示你成功了'
-      },
-      cmdDelimiter: ['{{', '}}']
-    })
+      const docxBuffer = await createReport({
+        template,
+        data: { ...inquiry.printData },
+        cmdDelimiter: ['{{', '}}']
+      })
 
-    fs.writeFileSync('./test.docx', docxBuffer)
+      fs.writeFileSync('./test.docx', docxBuffer)
 
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-    res.setHeader('Content-Disposition', 'attachment; filename=report.docx')
-    res.setHeader('Content-Length', docxBuffer.length)
-    res.status(200)
-    res.end(docxBuffer)
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+      res.setHeader('Content-Disposition', 'attachment; filename=report.docx')
+      res.setHeader('Content-Length', docxBuffer.length)
+      res.status(200)
+      res.end(docxBuffer)
+    } else {
+      return res
+              .status(404)
+              .json({
+                message: "Can't find inquiry."
+              })
+    }
   } catch (err) {
     console.error('Error generating docx:', err)
     res.status(500).send('產生 Word 文件失敗')
@@ -71,12 +77,31 @@ router.get("/:id", async(req, res) => {
 
 // 新增/編輯商品資訊
 
-router.post("/", async (req, res) => {
-  const inquiry = new Inquiry({ ...req.body })
+router.post("/:type", async (req, res) => {
+  let inquiry = null
+  let status = null
+
+  const type = req.params.type
+  if (type == 'edit') {
+    try {
+      inquiry = await Inquiry.findById(req.body._id)
+      Object.assign(inquiry, req.body)
+      status = 200
+      wording = '修改'
+    } catch (err) {
+      res
+        .status(400)
+        .json({ message: err.message })
+    }
+  } else if (type == 'add') {
+    inquiry = new Inquiry({ ...req.body })
+    status = 201
+    wording = '新增'
+  }
 
   try {
     await inquiry.save()
-    res.status(201).send()
+    res.status(status).send()
   } catch (err) {
     res
       .status(400)
@@ -88,9 +113,32 @@ router.post("/", async (req, res) => {
 //// 依條件查詢資料庫
 
 async function getInquirys(req, res, next) {
+  const { 
+    page = 1,
+    size = 10,
+    status,
+    category,
+    sortBy = "_id",
+    sortOrder = "asc"
+  } = req.query
+
+  const pageNumber = parseInt(page, 10)
+  const pageSize = parseInt(size, 10)
+
+  const filter = {}
+  if (category) { filter.category = category }
+  if (status) { filter.status = status }
+
+  const sortDirection = sortOrder === "desc" ? -1 : 1
+  const sort = { [sortBy]: sortDirection }
 
   try {
-    const inquirys = await Inquiry.find()
+    const total = await Inquiry.countDocuments(filter);
+    const inquirys = await Inquiry
+                            .find(filter)
+                            .sort(sort)
+                            .skip((pageNumber - 1) * pageSize)
+                            .limit(pageSize)
     if (inquirys == undefined) {
         return res
                 .status(404)
@@ -98,7 +146,15 @@ async function getInquirys(req, res, next) {
                   message: "Can't find inquiry."
                 })
     } else {
-      res.inquirys = inquirys
+      res.inquirys = {
+        data: inquirys,
+        pagination: {
+          total,
+          currentPage: pageNumber,
+          pageSize,
+          totalPages: Math.ceil(total / pageSize),
+        }
+      }
       next()
     }
   } catch (err) {
