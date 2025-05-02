@@ -242,15 +242,31 @@ async function getProjects(req, res, next) {
     status,
     category,
     sortBy = "_id",
-    sortOrder = "asc"
+    sortOrder = "asc",
+    search
   } = req.query
 
   const pageNumber = parseInt(page, 10)
   const pageSize = parseInt(size, 10)
 
-  const filter = {}
+  let filter = {}
   if (category) { filter.category = category }
   if (status) { filter.status = status }
+  if (search) {
+    const regex = new RegExp(search, 'i')
+    filter = {
+      $or: [
+        { 'title': regex },
+        { 'artist': regex },
+        { 'artist': regex },
+        { 'description.en': regex },
+        { 'description.zh': regex },
+        { 'detail.en': regex },
+        { 'detail.zh': regex },
+        { tags: { $elemMatch: { $regex: regex } } }
+      ]
+    }
+  }
 
   const sortDirection = sortOrder === "desc" ? -1 : 1
   const sort = { [sortBy]: sortDirection }

@@ -42,6 +42,10 @@ const brandSchema = new mongoose.Schema({
       }
     },
     article: [{
+      title: {
+        type: Map,
+        of: String
+      },
       text: {
         type: Map,
         of: String
@@ -60,7 +64,6 @@ const brandSchema = new mongoose.Schema({
     default: 'draft',
     required: true
   }
-
 })
 
 module.exports = mongoose.model('brand', brandSchema)

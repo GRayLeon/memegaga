@@ -6,6 +6,10 @@ const newsSchema = new mongoose.Schema({
     of: String,
     required: true
   },
+  category: {
+    type: String,
+    required: true
+  },
   source: {
     type: String,
     required: true
@@ -52,6 +56,11 @@ const newsSchema = new mongoose.Schema({
       }
     },
     article: [{
+      title: {
+        type: Map,
+        of: String,
+        required: function() { return !this.image }
+      },
       text: {
         type: Map,
         of: String,

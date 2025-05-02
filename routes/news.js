@@ -280,18 +280,28 @@ async function getNews(req, res, next) {
                 .json({
                   message: "Can't find news."
                 })
-    } else {
-      res.news = {
-        data: news,
-        pagination: {
-          total,
-          currentPage: pageNumber,
-          pageSize,
-          totalPages: Math.ceil(total / pageSize),
-        }
-      }
-      next()
     }
+
+    const categoryStats = await News.aggregate([
+      { $group: { _id: "$category", count: { $sum: 1 } } }
+    ])
+
+    const categoryAmount = {}
+    for (const item of categoryStats) {
+      categoryAmount[item._id] = item.count
+    }
+    
+    res.news = {
+      data: news,
+      pagination: {
+        total,
+        currentPage: pageNumber,
+        pageSize,
+        totalPages: Math.ceil(total / pageSize),
+      },
+      categoryAmount
+    }
+    next()
   } catch (err) {
       res
         .status(500)

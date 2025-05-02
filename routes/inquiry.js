@@ -26,9 +26,16 @@ router.get("/download/:id", async (req, res) => {
       const templatePath = path.join(__dirname, '..', 'templates', 'report-template.docx')
       const template = fs.readFileSync(templatePath)
 
+      console.log(inquiry)
       const docxBuffer = await createReport({
         template,
-        data: { ...inquiry.printData },
+        data: {
+          ...inquiry.data,
+          ...inquiry.printData,
+          category: inquiry.category,
+          status: inquiry.status,
+          createTime: inquiry.createTime,
+        },
         cmdDelimiter: ['{{', '}}']
       })
 
@@ -75,7 +82,7 @@ router.get("/:id", async(req, res) => {
 })
 
 
-// 新增/編輯商品資訊
+// 新增/編輯諮詢表單資訊
 
 router.post("/:type", async (req, res) => {
   let inquiry = null
@@ -101,7 +108,8 @@ router.post("/:type", async (req, res) => {
 
   try {
     await inquiry.save()
-    res.status(status).send()
+    let id = (status == 201)? inquiry._id : null
+    res.status(status).send(id)
   } catch (err) {
     res
       .status(400)

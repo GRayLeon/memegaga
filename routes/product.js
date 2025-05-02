@@ -386,16 +386,28 @@ async function getProducts(req, res, next) {
     status,
     category,
     sortBy = "_id",
-    sortOrder = "asc"
+    sortOrder = "asc",
+    originEn,
+    appearanceEn,
+    functionalityEn,
+    supportEn,
+    brandEn
   } = req.query
 
   const pageNumber = parseInt(page, 10)
   const pageSize = parseInt(size, 10)
 
   const filter = {}
-  if (category) { filter.parentCategory = category }
-  if (status) { filter.status = status }
+  filter.status = status?? 'active'
 
+  if (category) { filter.parentCategory = category }
+
+  if (originEn) { filter['origin.en'] = originEn }
+  if (appearanceEn) { filter['appearance.en'] = appearanceEn }
+  if (functionalityEn) { filter['functionality.en'] = functionalityEn }
+  if (supportEn) { filter['support.en'] = supportEn }
+  if (brandEn) { filter['brand'] = brandEn }
+  
   const sortDirection = sortOrder === "desc" ? -1 : 1
   const sort = { [sortBy]: sortDirection }
 
