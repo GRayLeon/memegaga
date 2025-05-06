@@ -24,7 +24,7 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: async (req, file) => {
     let transformation
-    if (file.fieldname === "visionImage") {
+    if (file.fieldname === "indexImage" || file.fieldname === "visionImage") {
       transformation = [{ 
         width: 1024,
         height: 1024,
@@ -60,7 +60,7 @@ const upload = multer({
     const maxSizeLargeImage = 1 * 1024 * 1024
     const maxSizeSmallImage = 300 * 1024
     
-    if (file.fieldname === "visionImage" && file.size > maxSizeLargeImage) {
+    if ((file.fieldname === "indexImage" || file.fieldname === "visionImage") && file.size > maxSizeLargeImage) {
       callback(new Error("商品圖片大小不得超過 1MB"))
     }
 
@@ -75,6 +75,7 @@ const upload = multer({
 
 // 限制上傳的圖片數量
 const uploadFields = upload.fields([
+  { name: "indexImage", maxCount: 1 },
   { name: "visionImage", maxCount: 1 },
   { name: "partnerImages", maxCount: 20 }
 ])
@@ -100,9 +101,13 @@ router.get("/", async (req, res) => {
 router.post("/:type", authenticateToken, uploadFields, async (req, res) => {
   // 透過 upload 上傳圖片至 cloudinary 並取得相關資訊
 
+  const indexImage = req.files["indexImage"] ? req.files["indexImage"][0] : null
+  const indexImageURL = indexImage?.path || null
+  const indexImagePublicId = indexImage?.filename || null
+
   const visionImage = req.files["visionImage"] ? req.files["visionImage"][0] : null
-  const imageURL = visionImage?.path || null
-  const imagePublicId = visionImage?.filename || null
+  const visionImageURL = visionImage?.path || null
+  const visionImagePublicId = visionImage?.filename || null
 
   let partnerImagesData = null
 
@@ -114,8 +119,10 @@ router.post("/:type", authenticateToken, uploadFields, async (req, res) => {
     }))
   }
 
+  req.body.index = JSON.parse(req.body.index)
   req.body.vision = JSON.parse(req.body.vision)
   req.body.partners = JSON.parse(req.body.partners)
+  req.body.contact = JSON.parse(req.body.contact)
 
   let pages
   let status
@@ -127,13 +134,22 @@ router.post("/:type", authenticateToken, uploadFields, async (req, res) => {
       pages = await Pages.findOne()
       Object.assign(pages, req.body)
 
+      // 若有新的 indexImagePublicId 則刪除舊的
+      if (indexImagePublicId) {
+        if (pages.index.imagePublicId) {
+          await cloudinary.uploader.destroy(pages.index.imagePublicId)
+        }
+        pages.index.imagePublicId = indexImagePublicId
+        pages.index.imageURL = indexImageURL
+      }
+
       // 若有新的 imagePublicId 則刪除舊的
-      if (imagePublicId) {
+      if (visionImagePublicId) {
         if (pages.vision.imagePublicId) {
           await cloudinary.uploader.destroy(pages.vision.imagePublicId)
         }
-        pages.vision.imagePublicId = imagePublicId
-        pages.vision.imageURL = imageURL
+        pages.vision.imagePublicId = visionImagePublicId
+        pages.vision.imageURL = visionImageURL
       }
 
       // 若有新的 partnerImages 則刪除舊的

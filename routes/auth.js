@@ -11,10 +11,11 @@ const JWT_SECRET = 'memegaga_jwt_secret'
 
 router.get("/", authenticateToken, async (req, res) => {
   try {
-    const accounts = await Account.find()
+    const accounts = await Account.find({ type: { $ne: 'admin' } })
     const filtedAccounts = accounts.map(account => ({
       '_id': account._id,
       'account': account.account,
+      'type': account.type,
       'status': account.status,
       'description': account.description,
       'lastLogin': account.lastLogin
@@ -135,7 +136,7 @@ router.get("/profile", authenticateToken, async (req, res) => {
       res.json({
         "id": account._id,
         "account": account.account,
-        "type": account.type
+        "type": account.type,
       })
     }
   } catch (err) {
