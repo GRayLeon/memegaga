@@ -398,7 +398,7 @@ async function getProducts(req, res, next) {
   const pageSize = parseInt(size, 10)
 
   const filter = {}
-  filter.status = status?? 'active'
+  if (status) { filter.status = status }
 
   if (category) { filter.parentCategory = category }
 

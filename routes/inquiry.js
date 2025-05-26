@@ -26,7 +26,6 @@ router.get("/download/:id", async (req, res) => {
       const templatePath = path.join(__dirname, '..', 'templates', 'report-template.docx')
       const template = fs.readFileSync(templatePath)
 
-      console.log(inquiry)
       const docxBuffer = await createReport({
         template,
         data: {

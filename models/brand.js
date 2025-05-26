@@ -25,7 +25,7 @@ const brandSchema = new mongoose.Schema({
           'single-vertical',
           'double-vertical',
           'single-horizon',
-          'double-borizon'
+          'double-horizon'
         ],
         default: 'single-vertical'
       },
