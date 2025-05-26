@@ -24,7 +24,7 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: async (req, file) => {
     let transformation
-    if (file.fieldname === "indexImage" || file.fieldname === "visionImage") {
+    if (file.fieldname === "indexImages" || file.fieldname === "visionImage") {
       transformation = [{ 
         width: 1024,
         height: 1024,
@@ -60,7 +60,7 @@ const upload = multer({
     const maxSizeLargeImage = 1 * 1024 * 1024
     const maxSizeSmallImage = 300 * 1024
     
-    if ((file.fieldname === "indexImage" || file.fieldname === "visionImage") && file.size > maxSizeLargeImage) {
+    if ((file.fieldname === "indexImages" || file.fieldname === "visionImage") && file.size > maxSizeLargeImage) {
       callback(new Error("商品圖片大小不得超過 1MB"))
     }
 
@@ -75,7 +75,7 @@ const upload = multer({
 
 // 限制上傳的圖片數量
 const uploadFields = upload.fields([
-  { name: "indexImage", maxCount: 1 },
+  { name: "indexImages", maxCount: 5 },
   { name: "visionImage", maxCount: 1 },
   { name: "partnerImages", maxCount: 20 }
 ])
@@ -101,9 +101,19 @@ router.get("/", async (req, res) => {
 router.post("/:type", authenticateToken, uploadFields, async (req, res) => {
   // 透過 upload 上傳圖片至 cloudinary 並取得相關資訊
 
-  const indexImage = req.files["indexImage"] ? req.files["indexImage"][0] : null
-  const indexImageURL = indexImage?.path || null
-  const indexImagePublicId = indexImage?.filename || null
+  // const indexImage = req.files["indexImage"] ? req.files["indexImage"][0] : null
+  // const indexImageURL = indexImage?.path || null
+  // const indexImagePublicId = indexImage?.filename || null
+
+  let indexImagesData = null
+
+  const indexImages = req.files["indexImages"] || []
+  if (indexImages) {
+    indexImagesData = indexImages.map( file => ({
+      'imageURL': file.path,
+      'imagePublicId': file.filename
+    }))
+  }
 
   const visionImage = req.files["visionImage"] ? req.files["visionImage"][0] : null
   const visionImageURL = visionImage?.path || null
@@ -135,12 +145,56 @@ router.post("/:type", authenticateToken, uploadFields, async (req, res) => {
       Object.assign(pages, req.body)
 
       // 若有新的 indexImagePublicId 則刪除舊的
-      if (indexImagePublicId) {
-        if (pages.index.imagePublicId) {
-          await cloudinary.uploader.destroy(pages.index.imagePublicId)
+      // if (indexImagePublicId) {
+      //   if (pages.index.imagePublicId) {
+      //     await cloudinary.uploader.destroy(pages.index.imagePublicId)
+      //   }
+      //   pages.index.imagePublicId = indexImagePublicId
+      //   pages.index.imageURL = indexImageURL
+      // }
+
+      const deleteIndexImages = []
+      if (indexImagesData && indexImagesData.length > 0) {
+        const newImages = req.body.index.images
+        req.body.updateIndexImages = JSON.parse(req.body.updateIndexImages)
+        const updateIndexImages = newImages.map( (newImage, idx) => {
+          let image
+          for (const update of req.body.updateIndexImages) {
+            if (update.idx == idx) {
+              indexImagesData.forEach( data => {
+                let checkName = data.imagePublicId.split("-")[1]
+                if (update.name == checkName) {
+                  image = data
+                }
+              })
+              if (pages.index.images[idx] && pages.index.images[idx].imagePublicId) {
+                deleteIndexImages.push(pages.index.images[idx].imagePublicId)
+              }
+            }
+          }
+          if (!image) {
+            return {
+              'imageURL': newImage.imageURL,
+              'imagePublicId': newImage.imagePublicId
+            }
+          } else {
+            return {
+              'imageURL': image.imageURL,
+              'imagePublicId': image.imagePublicId
+            }
+          }
+          
+        })
+        for (const image of deleteIndexImages) {
+          try {
+            await cloudinary.uploader.destroy(image)
+          } catch (err) {
+            return res
+                    .status(400)
+                    .json({ message: err.message })
+          }
         }
-        pages.index.imagePublicId = indexImagePublicId
-        pages.index.imageURL = indexImageURL
+        pages.index.images = updateIndexImages
       }
 
       // 若有新的 imagePublicId 則刪除舊的
@@ -168,7 +222,7 @@ router.post("/:type", authenticateToken, uploadFields, async (req, res) => {
                 }
               })
               if (pages.partners[idx] && pages.partners[idx].imagePublicId) {
-                deleteSubImages.push(pages.partners[idx].imagePublicId)
+                deletePartnerImages.push(pages.partners[idx].imagePublicId)
               }
             }
           }

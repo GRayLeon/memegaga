@@ -7,12 +7,14 @@ const pagesSchema = new mongoose.Schema({
       of: String,
       required: true
     },
-    imageURL: {
-      type: String
-    },
-    imagePublicId: {
-      type: String
-    }
+    images: [{
+      imageURL: {
+        type: String
+      },
+      imagePublicId: {
+        type: String
+      }
+    }]
   },
   vision: {
     description: {
@@ -26,6 +28,7 @@ const pagesSchema = new mongoose.Schema({
     imagePublicId: {
       type: String
     }
+    
   },
   partners: [{
     name: {
