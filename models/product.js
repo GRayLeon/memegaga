@@ -67,12 +67,10 @@ const productSchema = new mongoose.Schema({
   }],
   shapes: [{
     title: {
-      type: String,
-      required: true
+      type: String
     },
     scale: {
-      type: Number,
-      required: true
+      type: Number
     },
     imageURL: {
       type: String
@@ -84,7 +82,6 @@ const productSchema = new mongoose.Schema({
   colors: [{
     title: {
       type: String,
-      required: true
     },
     imageURL: {
       type: String
