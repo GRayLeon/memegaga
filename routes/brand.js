@@ -122,7 +122,7 @@ router.delete("/:id", authenticateToken, async (req, res) => {
 router.post("/:type", authenticateToken, uploadFields, async (req, res) => {
   // 透過 upload 上傳圖片至 cloudinary 並取得相關資訊
 
-  const mainImage = req.files ? req.files["mainImage"] : null
+  const mainImage = req.files ? req.files["mainImage"][0] : null
   const imageURL = mainImage?.path || null
   const imagePublicId = mainImage?.filename || null
 

@@ -145,7 +145,7 @@ router.post("/:type", authenticateToken, uploadFields, async (req, res) => {
   let shapeImagesData = null
   let colorImagesData = null
 
-  const mainImage = req.files["mainImage"] ? req.files["mainImage"] : null
+  const mainImage = req.files["mainImage"] ? req.files["mainImage"][0] : null
   const imageURL = mainImage?.path || null
   const imagePublicId = mainImage?.filename || null
 
