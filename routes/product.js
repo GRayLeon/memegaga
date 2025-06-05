@@ -156,6 +156,8 @@ router.post("/:type", authenticateToken, uploadFields, async (req, res) => {
       'imagePublicId': file.filename
     }))
   }
+
+  console.log(subImagesData)
   
 
   const shapeImages = req.files["shapeImages"] || []
@@ -381,8 +383,6 @@ router.post("/:type", authenticateToken, uploadFields, async (req, res) => {
 
 async function getProducts(req, res, next) {
   const { 
-    page = 1,
-    size = 10,
     status,
     category,
     sortBy = "_id",
@@ -393,9 +393,6 @@ async function getProducts(req, res, next) {
     supportEn,
     brandEn
   } = req.query
-
-  const pageNumber = parseInt(page, 10)
-  const pageSize = parseInt(size, 10)
 
   const filter = {}
   if (status) { filter.status = status }
@@ -416,8 +413,6 @@ async function getProducts(req, res, next) {
     const products = await Product
                             .find(filter)
                             .sort(sort)
-                            .skip((pageNumber - 1) * pageSize)
-                            .limit(pageSize)
     if (products == undefined) {
         return res
                 .status(404)
@@ -428,10 +423,7 @@ async function getProducts(req, res, next) {
       res.products = {
         data: products,
         pagination: {
-          total,
-          currentPage: pageNumber,
-          pageSize,
-          totalPages: Math.ceil(total / pageSize),
+          total
         }
       }
       next()

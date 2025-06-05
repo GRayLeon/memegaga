@@ -4,52 +4,52 @@ const productSchema = new mongoose.Schema({
   name: {
     type: Map,
     of: String,
-    required: true
+    // required: true
   },
   origin: {
     type: Map,
     of: String,
-    required: true
+    // required: true
   },
   appearance: {
     type: Map,
     of: String,
-    required: true
+    // required: true
   },
   functionality: {
     type: Map,
     of: String,
-    required: true
+    // required: true
   },
   support: {
     type: Map,
     of: String,
-    required: true
+    // required: true
   },
   brand: {
     type: String,
-    required: true
+    // required: true
   },
   model: {
     type: String,
-    required: true
+    // required: true
   },
   dimension: {
     type: String,
-    required: true
+    // required: true
   },
   slipResistance: {
     type: Number,
-    required: true
+    // required: true
   },
   application: {
     type: String,
-    required: true
+    // required: true
   },
   description: {
     type: Map,
     of: String,
-    required: true
+    // required: true
   },
   imageURL: {
     type: String
@@ -96,13 +96,13 @@ const productSchema = new mongoose.Schema({
   },
   basePrice: {
     type: Number,
-    required: true
+    // required: true
   },
   status: {
     type: String,
     enum: ['draft', 'active', 'inactive', 'archived'],
     default: 'draft',
-    required: true
+    // required: true
   }
 })
 

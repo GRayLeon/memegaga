@@ -3,7 +3,7 @@ const mongoose = require('mongoose')
 const brandSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true
+    // required: true
   },
   imageURL: {
     type: String
@@ -14,13 +14,13 @@ const brandSchema = new mongoose.Schema({
   description: {
     type: Map,
     of: String,
-    required: true
+    // required: true
   },
   content: [{
     layout: {
       direction: {
         type: String,
-        required: true,
+        // required: true,
         enum: [
           'single-vertical',
           'double-vertical',
@@ -31,7 +31,7 @@ const brandSchema = new mongoose.Schema({
       },
       position: {
         type: String,
-        required: true,
+        // required: true,
         enum: [
           'image-left',
           'image-right',
@@ -62,7 +62,7 @@ const brandSchema = new mongoose.Schema({
     type: String,
     enum: ['draft', 'active', 'inactive', 'archived'],
     default: 'draft',
-    required: true
+    // required: true
   }
 })
 

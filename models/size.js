@@ -3,16 +3,16 @@ const mongoose = require('mongoose')
 const sizeSchema = new mongoose.Schema({
   size: {
     type: String,
-    required: true
+    // required: true
   },
   scale: {
     type: Number,
-    required: true
+    // required: true
   },
   active: {
     type: Boolean,
     default: true,
-    required: true
+    // required: true
   }
 })
 

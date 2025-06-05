@@ -4,31 +4,31 @@ const inquirySchema = new mongoose.Schema({
   data: {
     userType: {
       type: String,
-      required: true
+      // required: true
     },
     topic: {
       type: String,
-      required: true
+      // required: true
     },
     question: {
       type: String,
-      required: true
+      // required: true
     },
     firstName: {
       type: String,
-      required: true
+      // required: true
     },
     lastName: {
       type: String,
-      required: true
+      // required: true
     },
     email: {
       type: String,
-      required: true
+      // required: true
     },
     number: {
       type: String,
-      required: true
+      // required: true
     },
     subscribe: {
       type: Boolean,
@@ -41,13 +41,13 @@ const inquirySchema = new mongoose.Schema({
   category: {
     type: String,
     enum: ['form', 'calculate'],
-    required: true
+    // required: true
   },
   status: {
     type: String,
     enum: ['pending', 'processing', 'processed', 'ignore'],
     default: 'pending',
-    required: true
+    // required: true
   },
   processer: {
     type: String

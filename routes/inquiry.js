@@ -120,17 +120,12 @@ router.post("/:type", async (req, res) => {
 //// 依條件查詢資料庫
 
 async function getInquirys(req, res, next) {
-  const { 
-    page = 1,
-    size = 10,
+  const {
     status,
     category,
     sortBy = "_id",
     sortOrder = "asc"
   } = req.query
-
-  const pageNumber = parseInt(page, 10)
-  const pageSize = parseInt(size, 10)
 
   const filter = {}
   if (category) { filter.category = category }
@@ -144,8 +139,6 @@ async function getInquirys(req, res, next) {
     const inquirys = await Inquiry
                             .find(filter)
                             .sort(sort)
-                            .skip((pageNumber - 1) * pageSize)
-                            .limit(pageSize)
     if (inquirys == undefined) {
         return res
                 .status(404)
@@ -156,10 +149,7 @@ async function getInquirys(req, res, next) {
       res.inquirys = {
         data: inquirys,
         pagination: {
-          total,
-          currentPage: pageNumber,
-          pageSize,
-          totalPages: Math.ceil(total / pageSize),
+          total
         }
       }
       next()

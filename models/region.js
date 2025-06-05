@@ -4,11 +4,11 @@ const regionSchema = new mongoose.Schema({
   name: {
     type: Map,
     of: String,
-    required: true
+    // required: true
   },
   status: {
     type: Boolean,
-    required: true
+    // required: true
   },
   imageURL: {
     type: String

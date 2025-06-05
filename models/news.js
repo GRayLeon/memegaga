@@ -4,15 +4,15 @@ const newsSchema = new mongoose.Schema({
   topic: {
     type: Map,
     of: String,
-    required: true
+    // required: true
   },
   category: {
     type: String,
-    required: true
+    // required: true
   },
   source: {
     type: String,
-    required: true
+    // required: true
   },
   imageURL: {
     type: String
@@ -23,18 +23,18 @@ const newsSchema = new mongoose.Schema({
   description: {
     type: Map,
     of: String,
-    required: true
+    // required: true
   },
   detail: {
     type: Map,
     of: String,
-    required: true
+    // required: true
   },
   content: [{
     layout: {
       direction: {
         type: String,
-        required: true,
+        // required: true,
         enum: [
           'single-vertical',
           'double-vertical',
@@ -45,7 +45,7 @@ const newsSchema = new mongoose.Schema({
       },
       position: {
         type: String,
-        required: true,
+        // required: true,
         enum: [
           'image-left',
           'image-right',
@@ -59,12 +59,12 @@ const newsSchema = new mongoose.Schema({
       title: {
         type: Map,
         of: String,
-        required: function() { return !this.image }
+        // required: function() { return !this.image }
       },
       text: {
         type: Map,
         of: String,
-        required: function() { return !this.image }
+        // required: function() { return !this.image }
       },
       imageURL: {
         type: String
@@ -82,7 +82,7 @@ const newsSchema = new mongoose.Schema({
     type: String,
     enum: ['draft', 'active', 'inactive', 'archived'],
     default: 'draft',
-    required: true
+    // required: true
   }
 
 })

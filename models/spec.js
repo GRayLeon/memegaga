@@ -5,7 +5,7 @@ const specSchema = new mongoose.Schema({
     name: {
       type: Map,
       of: String,
-      required: true
+      // required: true
     },
     list: [{
       type: Map,
@@ -16,7 +16,7 @@ const specSchema = new mongoose.Schema({
     name: {
       type: Map,
       of: String,
-      required: true
+      // required: true
     },
     list: [{
       type: Map,
@@ -27,7 +27,7 @@ const specSchema = new mongoose.Schema({
     name: {
       type: Map,
       of: String,
-      required: true
+      // required: true
     },
     list: [{
       type: Map,
@@ -38,7 +38,7 @@ const specSchema = new mongoose.Schema({
     name: {
       type: Map,
       of: String,
-      required: true
+      // required: true
     },
     list: [{
       type: Map,
@@ -49,12 +49,12 @@ const specSchema = new mongoose.Schema({
     name: {
       type: Map,
       of: String,
-      required: true
+      // required: true
     },
     list: [{
       name: {
         type: String,
-        required: true
+        // required: true
       },
       imageURL: {
         type: String

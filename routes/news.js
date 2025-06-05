@@ -117,11 +117,10 @@ router.delete("/:id", authenticateToken, async (req, res) => {
   }
 })
 
-// 新增/編輯商品資訊
+// 新增/編輯新聞資訊
 
 router.post("/:type", authenticateToken, uploadFields, async (req, res) => {
   // 透過 upload 上傳圖片至 cloudinary 並取得相關資訊
-
   const mainImage = req.files["mainImage"] ? req.files["mainImage"][0] : null
   const imageURL = mainImage?.path || null
   const imagePublicId = mainImage?.filename || null
@@ -249,16 +248,11 @@ router.post("/:type", authenticateToken, uploadFields, async (req, res) => {
 
 async function getNews(req, res, next) {
   const { 
-    page = 1,
-    size = 10,
     status,
     category,
     sortBy = "_id",
     sortOrder = "asc"
   } = req.query
-
-  const pageNumber = parseInt(page, 10)
-  const pageSize = parseInt(size, 10)
 
   const filter = {}
   if (category) { filter.category = category }
@@ -272,8 +266,6 @@ async function getNews(req, res, next) {
     const news = await News
                             .find(filter)
                             .sort(sort)
-                            .skip((pageNumber - 1) * pageSize)
-                            .limit(pageSize)
     if (news == undefined) {
         return res
                 .status(404)
@@ -294,10 +286,7 @@ async function getNews(req, res, next) {
     res.news = {
       data: news,
       pagination: {
-        total,
-        currentPage: pageNumber,
-        pageSize,
-        totalPages: Math.ceil(total / pageSize),
+        total
       },
       categoryAmount
     }

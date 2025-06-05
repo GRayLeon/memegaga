@@ -248,15 +248,11 @@ router.post("/:type", authenticateToken, uploadFields, async (req, res) => {
 
 async function getBrands(req, res, next) {
   const { 
-    page = 1,
-    size = 10,
     status,
     sortBy = "_id",
     sortOrder = "asc"
   } = req.query
 
-  const pageNumber = parseInt(page, 10)
-  const pageSize = parseInt(size, 10)
 
   const filter = {}
   if (status) { filter.status = status }
@@ -269,8 +265,6 @@ async function getBrands(req, res, next) {
     const brand = await Brand
                             .find(filter)
                             .sort(sort)
-                            .skip((pageNumber - 1) * pageSize)
-                            .limit(pageSize)
     if (brand == undefined) {
         return res
                 .status(404)
@@ -282,9 +276,6 @@ async function getBrands(req, res, next) {
         data: brand,
         pagination: {
           total,
-          currentPage: pageNumber,
-          pageSize,
-          totalPages: Math.ceil(total / pageSize),
         }
       }
       next()

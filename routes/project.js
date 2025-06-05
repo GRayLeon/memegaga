@@ -237,17 +237,12 @@ router.post("/:type", authenticateToken, uploadFields, async (req, res) => {
 
 async function getProjects(req, res, next) {
   const { 
-    page = 1,
-    size = 10,
     status,
     category,
     sortBy = "_id",
     sortOrder = "asc",
     search
   } = req.query
-
-  const pageNumber = parseInt(page, 10)
-  const pageSize = parseInt(size, 10)
 
   let filter = {}
   if (category) { filter.category = category }
@@ -276,8 +271,6 @@ async function getProjects(req, res, next) {
     const projects = await Project
                             .find(filter)
                             .sort(sort)
-                            .skip((pageNumber - 1) * pageSize)
-                            .limit(pageSize)
     if (projects == undefined) {
         return res
                 .status(404)
@@ -288,10 +281,7 @@ async function getProjects(req, res, next) {
       res.projects = {
         data: projects,
         pagination: {
-          total,
-          currentPage: pageNumber,
-          pageSize,
-          totalPages: Math.ceil(total / pageSize),
+          total
         }
       }
       next()

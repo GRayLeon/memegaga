@@ -5,7 +5,7 @@ const pagesSchema = new mongoose.Schema({
     description: {
       type: Map,
       of: String,
-      required: true
+      // required: true
     },
     images: [{
       imageURL: {
@@ -20,7 +20,7 @@ const pagesSchema = new mongoose.Schema({
     description: {
       type: Map,
       of: String,
-      required: true
+      // required: true
     },
     imageURL: {
       type: String
@@ -33,7 +33,7 @@ const pagesSchema = new mongoose.Schema({
   partners: [{
     name: {
       type: String,
-      required: true
+      // required: true
     },
     imageURL: {
       type: String
@@ -46,12 +46,12 @@ const pagesSchema = new mongoose.Schema({
     description: {
       type: Map,
       of: String,
-      required: true
+      // required: true
     },
     address: {
       type: Map,
       of: String,
-      required: true
+      // required: true
     }
   }
 })
