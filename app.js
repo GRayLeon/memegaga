@@ -29,6 +29,8 @@ db.once('open', () => console.log('Connected to database.'))
 app.use(express.json())
 app.use(cors())
 
+app.options('*', cors())
+
 const productRouter = require('./routes/product')
 const projectRouter = require('./routes/project')
 const newsRouter = require('./routes/news')
